@@ -34,21 +34,19 @@ public class QuestionService {
 
 
     public Question updateQuestion(Integer id, Question question) {
-        Question existingQuestion = questionDao.findById(id)
-                .orElseGet(() -> {
-                    Question q = new Question();
-                    q.setId(id);
-                    return q;
-                });
 
-        existingQuestion.setQuestionTitle(newQuestion.getQuestionTitle());
-        existingQuestion.setOption1(newQuestion.getOption1());
-        existingQuestion.setOption2(newQuestion.getOption2());
-        existingQuestion.setOption3(newQuestion.getOption3());
-        existingQuestion.setOption4(newQuestion.getOption4());
-        existingQuestion.setRightAnswer(newQuestion.getRightAnswer());
-        existingQuestion.setDifficultyLevel(newQuestion.getDifficultyLevel());
-        existingQuestion.setCategory(newQuestion.getCategory());
+        Question existingQuestion = questionDao.findById(id)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        // update fields
+        existingQuestion.setQuestionTitle(question.getQuestionTitle());
+        existingQuestion.setOption1(question.getOption1());
+        existingQuestion.setOption2(question.getOption2());
+        existingQuestion.setOption3(question.getOption3());
+        existingQuestion.setOption4(question.getOption4());
+        existingQuestion.setRightAnswer(question.getRightAnswer());
+        existingQuestion.setDifficultyLevel(question.getDifficultyLevel());
+        existingQuestion.setCategory(question.getCategory());
 
         return questionDao.save(existingQuestion);
     }
