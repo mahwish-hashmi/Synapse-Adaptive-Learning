@@ -1,111 +1,323 @@
-# AI-Powered Adaptive Learning Platform
+# 🧠 SYNAPSE AI – Adaptive Learning Platform
 
-A production-grade EdTech backend built with Spring Boot — featuring JWT authentication,
-role-based access, adaptive quiz engine, weak topic detection, and personalized learning paths.
-
----
-
-## Tech Stack
-
-| Layer       | Technology                                   |
-|-------------|----------------------------------------------|
-| Backend     | Spring Boot 3.4, Spring Security, Spring JPA |
-| Auth        | JWT (JJWT 0.12.6)                            |
-| Database    | PostgreSQL                                   |
-| Docs        | Swagger / OpenAPI 3                          |
-| Build       | Maven, Java 21                               |
+An intelligent learning and assessment platform designed to personalize educational experiences through adaptive quizzes, performance analytics, and AI-driven learning recommendations.
 
 ---
 
-## Features (by phase)
+## 🚀 Overview
 
-- **Phase 1 (current)** — JWT auth, role-based access (STUDENT / ADMIN), question CRUD, Swagger docs
-- **Phase 2** — Quiz engine, attempt tracking, scoring
-- **Phase 3** — Weak topic detection AI, mastery scoring
-- **Phase 4** — Personalized learning paths, adaptive quiz, spaced repetition
-- **Phase 5** — LLM integration, analytics dashboard, gamification
-- **Phase 6** — Redis, Docker, CI/CD
+**SYNAPSE AI** is an adaptive learning platform designed to deliver personalized educational experiences through AI-driven analytics and intelligent assessment systems.
+
+The platform continuously analyzes learner performance, topic mastery, response patterns, and progression trends to dynamically:
+- personalize quizzes,
+- identify weak concepts,
+- generate learning recommendations,
+- and optimize learning paths.
+
+By combining adaptive assessments, performance analytics, and AI-powered recommendations, SYNAPSE AI transforms traditional quiz systems into an intelligent and scalable learning ecosystem.
+---
+
+## ✨ Core Features
+
+### 🧠 Adaptive Quiz System
+- Dynamic difficulty adjustment
+- Topic-based assessments
+- Personalized quiz progression
+- Intelligent revision flow
 
 ---
 
-## Getting started
+### 📊 Weak Topic Analysis
+- Topic mastery tracking
+- Weakness heatmaps
+- Performance analytics
+- Learning consistency metrics
+- Recommendation generation
 
-### 1. Prerequisites
-- Java 21
-- PostgreSQL running locally
-- Maven 3.9+
+Example:
+- Arrays → 91%
+- Trees → 43%
+- Dynamic Programming → 18%
 
-### 2. Set up environment variables
+Recommendation:
+> “Strengthen recursion fundamentals before progressing into Dynamic Programming.”
+
+---
+
+### 🤖 AI-Powered Learning Assistance
+- AI-generated quizzes
+- Personalized recommendations
+- Intelligent explanation engine
+- Adaptive learning suggestions
+
+---
+
+### 🔐 Authentication & Security
+- JWT-based authentication
+- Role-based authorization
+- Secure REST APIs
+- Protected routes & endpoints
+
+---
+
+### 📈 Analytics Dashboard
+- Progress tracking
+- Topic mastery graphs
+- Performance trends
+- Learning analytics
+- Activity insights
+
+---
+
+### 🎮 Gamification
+- XP system
+- Achievement badges
+- Streak tracking
+- Leaderboards
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React + Tailwind CSS |
+| Backend | Spring Boot |
+| Database | PostgreSQL |
+| Authentication | JWT + Spring Security |
+| ORM | Spring Data JPA / Hibernate |
+| AI Integration | OpenAI / Gemini API |
+| Caching | Redis |
+| Realtime | WebSocket |
+| Deployment | Docker |
+
+---
+
+# 🧱 System Architecture
+
+```text
+┌──────────────────────────────┐
+│        React Frontend        │
+│      (Client Interface)      │
+└──────────────┬───────────────┘
+               │
+               │ REST APIs / WebSocket
+               ▼
+┌──────────────────────────────┐
+│      Spring Boot APIs        │
+│    (Business Logic Layer)    │
+└──────────────┬───────────────┘
+               │
+ ┌─────────────┼─────────────┐
+ ▼             ▼             ▼
+Authentication Analytics  AI Engine
+   Layer        Engine      Layer
+ │               │            │
+ └───────────────┼────────────┘
+                 ▼
+┌──────────────────────────────┐
+│ PostgreSQL + Redis Caching   │
+│      (Data Persistence)      │
+└──────────────────────────────┘
+```
+
+---
+
+# 🔄 Adaptive Learning Flow
+
+```text
+User Attempts Quiz
+        ↓
+Performance Data Captured
+        ↓
+Analytics Engine Evaluates:
+- Accuracy
+- Weak Topics
+- Response Speed
+- Learning Consistency
+        ↓
+Recommendation Engine
+        ↓
+Personalized Learning Suggestions
+        ↓
+Adaptive Quiz Generation
+```
+
+---
+
+# 🧠 AI Intelligence Layer
+
+## Weak Topic Detection
+
+The analytics engine evaluates:
+- response accuracy,
+- repeated failures,
+- topic consistency,
+- performance trends,
+- and improvement patterns.
+
+### Example Formula
+
+```math
+Mastery Index = 0.4(Accuracy) + 0.3(Consistency) + 0.2(Improvement Rate) + 0.1(Response Confidence)
+```
+
+---
+
+## Personalized Learning Path
+
+The platform dynamically generates:
+- topic recommendations,
+- adaptive revision plans,
+- personalized learning sequences,
+- and progressive difficulty adjustments.
+
+### Example Learning Path
+
+```text
+Beginner:
+Basics → Easy Problems → Medium → Advanced
+
+Advanced Learner:
+Skip Fundamentals → Hard Problems → Competitive Mode
+```
+
+---
+
+# 🔐 Authentication Flow
+
+```text
+User Login / Registration
+        ↓
+JWT Token Generated
+        ↓
+Token Attached with Requests
+        ↓
+Backend Validation
+        ↓
+Authorized API Access
+```
+
+---
+
+# 👥 Role-Based Access
+
+```text
+Student
+ ├── Attempt Quizzes
+ ├── View Analytics
+ ├── Track Progress
+ └── Access Recommendations
+
+Instructor
+ ├── Create Assessments
+ ├── Manage Topics
+ ├── Review Performance
+ └── Access Analytics
+
+Admin
+ ├── Manage Platform
+ ├── User Management
+ ├── System Monitoring
+ └── Analytics Overview
+```
+
+---
+
+# 📊 Dashboard Features
+
+The platform provides:
+- topic mastery insights,
+- weakness analysis,
+- progress graphs,
+- learning trends,
+- recommendation cards,
+- and performance analytics.
+
+---
+
+# 📁 Project Structure
+
+```text
+synapse-ai/
+│
+├── backend/
+│   ├── config/
+│   ├── controller/
+│   ├── dto/
+│   ├── entity/
+│   ├── exception/
+│   ├── repository/
+│   ├── security/
+│   ├── service/
+│   ├── analytics/
+│   ├── recommendation/
+│   └── ai/
+│
+├── frontend/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   ├── hooks/
+│   ├── context/
+│   └── assets/
+```
+
+---
+
+# ⚙️ Installation & Setup
+
+## 🔹 Clone Repository
 
 ```bash
-cp .env.example .env
-# Edit .env with your actual database credentials and a strong JWT secret
+git clone <repository-url>
+cd synapse-ai
 ```
 
-### 3. Create the database
+---
 
-```sql
-CREATE DATABASE questiondb;
-```
-
-### 4. Run the application
+## 🔹 Backend Setup
 
 ```bash
-./mvnw spring-boot:run
-```
-
-### 5. Open Swagger UI
-
-```
-http://localhost:8080/swagger-ui.html
+cd backend
+mvn spring-boot:run
 ```
 
 ---
 
-## API Overview
+## 🔹 Frontend Setup
 
-### Auth (public)
-| Method | Endpoint               | Description        |
-|--------|------------------------|--------------------|
-| POST   | /api/v1/auth/register  | Register account   |
-| POST   | /api/v1/auth/login     | Login, get JWT     |
-
-### Questions (requires JWT)
-| Method | Endpoint                                          | Role    |
-|--------|---------------------------------------------------|---------|
-| GET    | /api/v1/questions                                 | Any     |
-| GET    | /api/v1/questions/{id}                            | Any     |
-| GET    | /api/v1/questions/category/{category}             | Any     |
-| POST   | /api/v1/questions                                 | ADMIN   |
-| PUT    | /api/v1/questions/{id}                            | ADMIN   |
-| DELETE | /api/v1/questions/{id}                            | ADMIN   |
-
----
-
-## Project structure
-
-```
-src/main/java/com/telusko/quizapp/
-├── config/          SecurityConfig, SwaggerConfig
-├── controller/      AuthController, QuestionController
-├── dto/
-│   ├── request/     RegisterRequest, LoginRequest
-│   └── response/    ApiResponse<T>, AuthResponse
-├── entity/          User, Question
-├── exception/       GlobalExceptionHandler, custom exceptions
-├── repository/      UserRepository, QuestionRepository
-├── security/        JwtUtil, JwtAuthFilter, UserDetailsServiceImpl
-└── service/         AuthService, QuestionService
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
 
-## Environment variables
+# 🔮 Future Enhancements
 
-| Variable            | Description                        | Default (dev only)   |
-|---------------------|------------------------------------|----------------------|
-| DB_URL              | PostgreSQL JDBC URL                | localhost:5432/questiondb |
-| DB_USERNAME         | Database username                  | postgres             |
-| DB_PASSWORD         | Database password                  | —                    |
-| JWT_SECRET          | HS256 signing key (min 32 chars)   | —                    |
-| JWT_EXPIRATION_MS   | Token lifetime in milliseconds     | 86400000 (24h)       |
+- AI Mentor Chatbot
+- Real-Time Quiz Battles
+- Live Leaderboards
+- Predictive Performance Insights
+- Resume-Based Interview Assessments
+- Microservices Architecture
+- Kafka Event Streaming
+- Kubernetes Deployment
+
+---
+
+# 👩‍💻 Author
+
+**Mahwish Hashmi**  
+Full-Stack Developer | Backend Engineering Enthusiast
+
+---
+
+<div align="center">
+
+### SYNAPSE AI
+Adaptive Learning • Performance Intelligence • Personalized Education
+
+</div>
