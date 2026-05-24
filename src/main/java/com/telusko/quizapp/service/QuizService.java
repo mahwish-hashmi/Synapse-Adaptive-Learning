@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,6 +35,8 @@ public class QuizService {
     private final QuestionAttemptRepository questionAttemptRepository;
     private final QuestionRepository questionRepository;
     private final SecurityUtils securityUtils;
+    private final WeakTopicDetectionService weakTopicDetectionService; // Phase 3: AI trigger
+    private final LearningPathService learningPathService; // Phase 4: Learning path
 
     // ─────────────────────────────────────────────────────────────────────────
     // START QUIZ
@@ -43,7 +46,6 @@ public class QuizService {
     public QuizStartResponse startQuiz(QuizStartRequest request) {
         User currentUser = securityUtils.getCurrentUser();
 
-        // Fetch questions — filtered by category and optionally difficulty
         List<Question> questions = fetchQuestions(
                 request.getCategory(),
                 request.getDifficultyLevel(),
@@ -57,7 +59,6 @@ public class QuizService {
                        ? " and difficulty: " + request.getDifficultyLevel() : ""));
         }
 
-        // Create a new quiz attempt with IN_PROGRESS status
         QuizAttempt attempt = QuizAttempt.builder()
                 .user(currentUser)
                 .category(request.getCategory())
@@ -69,7 +70,7 @@ public class QuizService {
         log.info("Quiz started: userId={}, category={}, attemptId={}",
                 currentUser.getId(), request.getCategory(), saved.getId());
 
-        // Map questions to response — NEVER include rightAnswer
+        // Map to response — NEVER include rightAnswer in this response
         List<QuizStartResponse.QuestionResponse> questionResponses = questions.stream()
                 .map(q -> QuizStartResponse.QuestionResponse.builder()
                         .id(q.getId())
@@ -99,13 +100,12 @@ public class QuizService {
     public QuizResultResponse submitQuiz(QuizSubmitRequest request) {
         User currentUser = securityUtils.getCurrentUser();
 
-        // Load the quiz attempt — verify it belongs to this user
         QuizAttempt quizAttempt = quizAttemptRepository
                 .findById(request.getQuizAttemptId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "QuizAttempt", "id", request.getQuizAttemptId()));
 
-        // Security check: users can only submit their own quizzes
+        // Security: users can only submit their own quizzes
         if (!quizAttempt.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("You are not authorized to submit this quiz");
         }
@@ -115,7 +115,6 @@ public class QuizService {
             throw new RuntimeException("This quiz has already been submitted");
         }
 
-        // Load questions for the answers provided
         Map<Integer, Question> questionsMap = questionRepository
                 .findAllById(request.getAnswers().keySet())
                 .stream()
@@ -123,10 +122,8 @@ public class QuizService {
 
         int correct = 0;
         int incorrect = 0;
-        List<QuizResultResponse.QuestionResultDetail> details =
-                new java.util.ArrayList<>();
+        List<QuizResultResponse.QuestionResultDetail> details = new ArrayList<>();
 
-        // Process each answer
         for (Map.Entry<Integer, String> entry : request.getAnswers().entrySet()) {
             Integer questionId = entry.getKey();
             String selectedAnswer = entry.getValue();
@@ -138,11 +135,9 @@ public class QuizService {
             if (isCorrect) correct++;
             else incorrect++;
 
-            // How many times has this user attempted this specific question before?
             int previousAttempts = questionAttemptRepository
                     .countByUserIdAndQuestionId(currentUser.getId(), questionId);
 
-            // Time spent on this question (from client, or 0 if not provided)
             Long timeTaken = request.getTimingsPerQuestion() != null
                     ? request.getTimingsPerQuestion().getOrDefault(questionId, 0L)
                     : 0L;
@@ -173,15 +168,12 @@ public class QuizService {
                     .build());
         }
 
-        // Calculate score
         int total = request.getAnswers().size();
         double scorePercentage = total > 0 ? ((double) correct / total) * 100.0 : 0.0;
 
-        // Total quiz duration in seconds
         long timeTakenSeconds = ChronoUnit.SECONDS.between(
                 quizAttempt.getStartedAt(), LocalDateTime.now());
 
-        // Update quiz attempt with results
         quizAttempt.setStatus(QuizAttempt.Status.COMPLETED);
         quizAttempt.setCorrectAnswers(correct);
         quizAttempt.setIncorrectAnswers(incorrect);
@@ -193,6 +185,14 @@ public class QuizService {
 
         log.info("Quiz submitted: userId={}, attemptId={}, score={}%",
                 currentUser.getId(), quizAttempt.getId(), scorePercentage);
+
+        // ── Phase 3: Trigger AI weakness analysis ────────────────────────────────
+        // Recalculates TopicPerformance + WeaknessAnalysis for this category
+        weakTopicDetectionService.analyzeAfterQuiz(currentUser, quizAttempt.getCategory());
+
+        // ── Phase 4: Update personalized learning path + revision schedule ────────
+        // Runs spaced repetition update and regenerates recommended topic sequence
+        learningPathService.updateAfterQuiz(currentUser, quizAttempt.getCategory(), scorePercentage);
 
         return QuizResultResponse.builder()
                 .quizAttemptId(quizAttempt.getId())
@@ -209,7 +209,7 @@ public class QuizService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // GET RESULT (view a past attempt)
+    // GET RESULT
     // ─────────────────────────────────────────────────────────────────────────
 
     public QuizResultResponse getResult(Long attemptId) {
@@ -217,8 +217,7 @@ public class QuizService {
 
         QuizAttempt attempt = quizAttemptRepository
                 .findByIdWithQuestionAttempts(attemptId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "QuizAttempt", "id", attemptId));
+                .orElseThrow(() -> new ResourceNotFoundException("QuizAttempt", "id", attemptId));
 
         if (!attempt.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("Access denied");
@@ -232,8 +231,7 @@ public class QuizService {
                         .selectedAnswer(qa.getSelectedAnswer())
                         .correctAnswer(qa.getCorrectAnswer())
                         .isCorrect(qa.getIsCorrect())
-                        .timeTakenSeconds(qa.getTimeTakenSeconds() != null
-                                ? qa.getTimeTakenSeconds() : 0)
+                        .timeTakenSeconds(qa.getTimeTakenSeconds() != null ? qa.getTimeTakenSeconds() : 0)
                         .build())
                 .collect(Collectors.toList());
 
@@ -244,8 +242,7 @@ public class QuizService {
                 .correctAnswers(attempt.getCorrectAnswers())
                 .incorrectAnswers(attempt.getIncorrectAnswers())
                 .scorePercentage(attempt.getScorePercentage())
-                .timeTakenSeconds(attempt.getTimeTakenSeconds() != null
-                        ? attempt.getTimeTakenSeconds() : 0)
+                .timeTakenSeconds(attempt.getTimeTakenSeconds() != null ? attempt.getTimeTakenSeconds() : 0)
                 .performanceLabel(getPerformanceLabel(attempt.getScorePercentage()))
                 .message(getEncouragementMessage(attempt.getScorePercentage()))
                 .questionResults(details)
@@ -268,14 +265,10 @@ public class QuizService {
                 .map(a -> QuizHistoryResponse.AttemptSummary.builder()
                         .attemptId(a.getId())
                         .category(a.getCategory())
-                        .totalQuestions(a.getTotalQuestions() != null
-                                ? a.getTotalQuestions() : 0)
-                        .correctAnswers(a.getCorrectAnswers() != null
-                                ? a.getCorrectAnswers() : 0)
-                        .scorePercentage(a.getScorePercentage() != null
-                                ? a.getScorePercentage() : 0.0)
-                        .timeTakenSeconds(a.getTimeTakenSeconds() != null
-                                ? a.getTimeTakenSeconds() : 0)
+                        .totalQuestions(a.getTotalQuestions() != null ? a.getTotalQuestions() : 0)
+                        .correctAnswers(a.getCorrectAnswers() != null ? a.getCorrectAnswers() : 0)
+                        .scorePercentage(a.getScorePercentage() != null ? a.getScorePercentage() : 0.0)
+                        .timeTakenSeconds(a.getTimeTakenSeconds() != null ? a.getTimeTakenSeconds() : 0)
                         .status(a.getStatus().name())
                         .completedAt(a.getCompletedAt())
                         .build())
@@ -294,8 +287,7 @@ public class QuizService {
 
     private List<Question> fetchQuestions(String category, String difficulty, int count) {
         if (difficulty != null && !difficulty.isBlank()) {
-            return questionRepository.findRandomByCategoryAndDifficulty(
-                    category, difficulty, count);
+            return questionRepository.findRandomByCategoryAndDifficulty(category, difficulty, count);
         }
         return questionRepository.findRandomByCategory(category, count);
     }
