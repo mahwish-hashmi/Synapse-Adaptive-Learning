@@ -14,6 +14,7 @@ import com.telusko.quizapp.repository.QuestionAttemptRepository;
 import com.telusko.quizapp.repository.QuestionRepository;
 import com.telusko.quizapp.repository.QuizAttemptRepository;
 import com.telusko.quizapp.security.SecurityUtils;
+import com.telusko.quizapp.entity.Achievement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,8 @@ public class QuizService {
     private final QuestionRepository questionRepository;
     private final SecurityUtils securityUtils;
     private final WeakTopicDetectionService weakTopicDetectionService; // Phase 3: AI trigger
-    private final LearningPathService learningPathService; // Phase 4: Learning path
+    private final LearningPathService learningPathService;  // Phase 4: Learning path
+    private final GamificationService gamificationService;    // Phase 5: XP, badges, streaks
 
     // ─────────────────────────────────────────────────────────────────────────
     // START QUIZ
@@ -191,8 +193,10 @@ public class QuizService {
         weakTopicDetectionService.analyzeAfterQuiz(currentUser, quizAttempt.getCategory());
 
         // ── Phase 4: Update personalized learning path + revision schedule ────────
-        // Runs spaced repetition update and regenerates recommended topic sequence
         learningPathService.updateAfterQuiz(currentUser, quizAttempt.getCategory(), scorePercentage);
+
+        // ── Phase 5: Gamification — XP, streaks, badge evaluation ────────────
+        gamificationService.processQuizCompletion(currentUser, correct, total, scorePercentage);
 
         return QuizResultResponse.builder()
                 .quizAttemptId(quizAttempt.getId())

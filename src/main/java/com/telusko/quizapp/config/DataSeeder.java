@@ -1,6 +1,8 @@
 package com.telusko.quizapp.config;
 
+import com.telusko.quizapp.entity.Achievement;
 import com.telusko.quizapp.entity.Question;
+import com.telusko.quizapp.repository.AchievementRepository;
 import com.telusko.quizapp.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import java.util.List;
 public class DataSeeder implements CommandLineRunner {
 
     private final QuestionRepository questionRepository;
+    private final AchievementRepository achievementRepository;
 
     @Override
     public void run(String... args) {
@@ -169,5 +172,44 @@ public class DataSeeder implements CommandLineRunner {
 
         questionRepository.saveAll(questions);
         log.info("Seeded {} sample questions across Java, Data Structures, Spring Boot", questions.size());
+
+        seedAchievements();
+    }
+
+    private void seedAchievements() {
+        if (achievementRepository.count() > 0) {
+            log.info("Achievements already seeded — skipping.");
+            return;
+        }
+
+        List<Achievement> achievements = List.of(
+            Achievement.builder().name("First Step").description("Complete your very first quiz").icon("🎯")
+                .conditionType("FIRST_QUIZ").conditionValue(1).xpReward(20).build(),
+            Achievement.builder().name("Quiz Starter").description("Complete 5 quizzes").icon("📝")
+                .conditionType("QUIZ_COUNT").conditionValue(5).xpReward(30).build(),
+            Achievement.builder().name("Quiz Enthusiast").description("Complete 25 quizzes").icon("🔥")
+                .conditionType("QUIZ_COUNT").conditionValue(25).xpReward(75).build(),
+            Achievement.builder().name("Quiz Master").description("Complete 100 quizzes").icon("🏆")
+                .conditionType("QUIZ_COUNT").conditionValue(100).xpReward(200).build(),
+            Achievement.builder().name("On Fire").description("Maintain a 3-day streak").icon("🔥")
+                .conditionType("STREAK_DAYS").conditionValue(3).xpReward(30).build(),
+            Achievement.builder().name("Consistent Learner").description("Maintain a 7-day streak").icon("⚡")
+                .conditionType("STREAK_DAYS").conditionValue(7).xpReward(70).build(),
+            Achievement.builder().name("Unstoppable").description("Maintain a 30-day streak").icon("💎")
+                .conditionType("STREAK_DAYS").conditionValue(30).xpReward(300).build(),
+            Achievement.builder().name("XP Hunter").description("Earn 100 XP").icon("⭐")
+                .conditionType("XP_THRESHOLD").conditionValue(100).xpReward(15).build(),
+            Achievement.builder().name("XP Champion").description("Earn 500 XP").icon("🌟")
+                .conditionType("XP_THRESHOLD").conditionValue(500).xpReward(50).build(),
+            Achievement.builder().name("Perfect Score").description("Score 100% on any quiz").icon("💯")
+                .conditionType("PERFECT_SCORE").conditionValue(100).xpReward(50).build(),
+            Achievement.builder().name("Topic Master").description("Reach 75% mastery in any topic").icon("🎓")
+                .conditionType("MASTERY_TOPIC").conditionValue(75).xpReward(100).build()
+        );
+
+        achievementRepository.saveAll(achievements);
+        log.info("Seeded {} achievements", achievements.size());
+    }
+
     }
 }
